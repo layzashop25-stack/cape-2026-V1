@@ -2,43 +2,179 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Base ─────────────────────────────────────────────── */
 @layer base {
   body {
     @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-slate-900;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    overscroll-behavior: none;
   }
+  * { -webkit-font-smoothing: antialiased; }
+  input, select, textarea { font-size: 16px; } /* prevent iOS zoom */
 }
 
+/* ─── Utilities ─────────────────────────────────────────── */
 @layer utilities {
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-in;
-  }
-  
-  .animate-slide-up {
-    animation: slideUp 0.4s ease-out;
-  }
-  
+  .animate-fade-in  { animation: fadeIn  0.5s ease-in;  }
+  .animate-slide-up { animation: slideUp 0.4s ease-out; }
+
   .glass {
     @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-xl;
   }
-  
   .card-hover {
     @apply transition-all duration-300 hover:shadow-2xl hover:-translate-y-1;
   }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes fadeIn  { from { opacity: 0; }                        to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ─── APP LAYOUT ────────────────────────────────────────── */
+
+/* Root wrapper */
+.app-root {
+  display: flex;
+  height: 100dvh;          /* dynamic viewport height — fixes mobile browser bars */
+  width: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
-@keyframes slideUp {
-  from { 
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
+/* ── Sidebar ── */
+.sidebar {
+  display: none;           /* hidden on mobile by default */
+  flex-direction: column;
+  width: 260px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 4px 0 24px rgba(0,0,0,0.06);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.logo-icon {
+  padding: 10px;
+  background: linear-gradient(135deg, #2563eb, #4338ca);
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(37,99,235,0.35);
+  flex-shrink: 0;
+}
+
+.logo-icon-sm {
+  padding: 7px;
+  background: linear-gradient(135deg, #2563eb, #4338ca);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.sidebar-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ── Main column ── */
+.main-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Mobile top bar — shown only on mobile */
+.mobile-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+/* Desktop title — hidden on mobile */
+.desktop-title {
+  display: none;
+  padding: 32px 32px 8px;
+  flex-shrink: 0;
+}
+
+/* Scrollable page content */
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 100px; /* bottom padding for bottom nav */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Bottom nav — mobile only ── */
+.bottom-nav {
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* ─── DESKTOP breakpoint (768px+) ──────────────────────── */
+@media (min-width: 768px) {
+  .sidebar        { display: flex; }        /* show sidebar */
+  .mobile-topbar  { display: none; }        /* hide mobile top bar */
+  .desktop-title  { display: block; }       /* show desktop title */
+  .bottom-nav     { display: none; }        /* hide bottom nav */
+  .page-content   {
+    padding: 16px 32px 32px;               /* normal desktop padding */
   }
 }

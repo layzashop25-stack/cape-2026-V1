@@ -116,82 +116,102 @@ export function CaseList() {
           <p className="text-slate-500 mt-2">{t.startAddingCases}</p>
         </div>
       ) : (
-        <div className="glass rounded-2xl overflow-hidden card-hover">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gradient-to-r from-slate-50 to-slate-100 border-b-2 border-slate-200">
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.name}</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.gender}</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.age}</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.problem}</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.date}</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {cases.map((c, idx) => (
-                  <tr key={c.id} className="hover:bg-blue-50/50 transition-colors duration-200" style={{ animationDelay: `${idx * 50}ms` }}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold">
-                          {c.name.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="font-semibold text-slate-800">{c.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        c.gender === 'male' 
-                          ? 'bg-blue-100 text-blue-700' 
-                          : 'bg-pink-100 text-pink-700'
-                      }`}>
-                        {c.gender === 'male' ? t.boy : t.girl}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-700 font-medium">{c.age} {t.years}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-700">
-                        {getProblemIcon(c.problemType)} {getCaseTypeLabel(c.problemType)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-600">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        {new Date(c.date).toLocaleDateString('fr-FR')}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleRapport(c)}
-                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                          title="تقرير / Rapport"
-                        >
-                          <FileText className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleEdit(c)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="تعديل / Edit"
-                        >
-                          <Edit className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(c.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="حذف / Delete"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block glass rounded-2xl overflow-hidden card-hover">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gradient-to-r from-slate-50 to-slate-100 border-b-2 border-slate-200">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.name}</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.gender}</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.age}</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.problem}</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.date}</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">إجراءات</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {cases.map((c, idx) => (
+                    <tr key={c.id} className="hover:bg-blue-50/50 transition-colors duration-200" style={{ animationDelay: `${idx * 50}ms` }}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold">
+                            {c.name.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="font-semibold text-slate-800">{c.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          c.gender === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'
+                        }`}>
+                          {c.gender === 'male' ? t.boy : t.girl}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-700 font-medium">{c.age} {t.years}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-700">
+                          {getProblemIcon(c.problemType)} {getCaseTypeLabel(c.problemType)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-600">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          {new Date(c.date).toLocaleDateString('fr-FR')}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex gap-2">
+                          <button onClick={() => handleRapport(c)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"><FileText className="w-5 h-5" /></button>
+                          <button onClick={() => handleEdit(c)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit className="w-5 h-5" /></button>
+                          <button onClick={() => handleDelete(c.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-5 h-5" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {cases.map((c) => (
+              <div key={c.id} className="glass rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg">
+                      {c.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800">{c.name}</p>
+                      <p className="text-xs text-slate-500">{new Date(c.date).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={() => handleRapport(c)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg"><FileText className="w-5 h-5" /></button>
+                    <button onClick={() => handleEdit(c)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit className="w-5 h-5" /></button>
+                    <button onClick={() => handleDelete(c.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-5 h-5" /></button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    c.gender === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'
+                  }`}>
+                    {c.gender === 'male' ? t.boy : t.girl}
+                  </span>
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                    {c.age} {t.years}
+                  </span>
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                    {getProblemIcon(c.problemType)} {getCaseTypeLabel(c.problemType)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
       
       <div className="glass rounded-xl p-4 flex items-center justify-between">

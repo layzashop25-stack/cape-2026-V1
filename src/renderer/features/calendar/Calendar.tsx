@@ -78,26 +78,26 @@ export function Calendar() {
   return (
     <div className="space-y-6 animate-slide-up">
       <div className="glass rounded-2xl p-6 card-hover">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             {monthNames[language][currentDate.getMonth()]} {currentDate.getFullYear()}
           </h2>
-          <div className="flex gap-2">
-            <Button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))} variant="secondary">
-              <ChevronLeft className="w-5 h-5" />
+          <div className="flex gap-1 md:gap-2">
+            <Button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))} variant="secondary" size="sm">
+              <ChevronLeft className="w-4 h-4" />
             </Button>
-            <Button onClick={() => setCurrentDate(new Date())} variant="secondary">
+            <Button onClick={() => setCurrentDate(new Date())} variant="secondary" size="sm">
               {t.today || 'Today'}
             </Button>
-            <Button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))} variant="secondary">
-              <ChevronRight className="w-5 h-5" />
+            <Button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))} variant="secondary" size="sm">
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-2">
-          {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(day => (
-            <div key={day} className="text-center font-bold text-slate-600 py-2">{day}</div>
+        <div className="grid grid-cols-7 gap-1 md:gap-2">
+          {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, i) => (
+            <div key={i} className="text-center font-bold text-slate-600 py-1 text-xs md:text-sm">{day}</div>
           ))}
           {blanks.map(i => <div key={`blank-${i}`} />)}
           {days.map(day => {
@@ -107,16 +107,19 @@ export function Calendar() {
               <div
                 key={day}
                 onClick={() => openModal(day)}
-                className={`min-h-24 p-2 rounded-xl border-2 cursor-pointer transition-all hover:scale-105 ${
+                className={`min-h-10 md:min-h-24 p-1 md:p-2 rounded-lg md:rounded-xl border-2 cursor-pointer transition-all ${
                   isToday ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300'
                 }`}
               >
-                <div className={`text-sm font-bold mb-1 ${isToday ? 'text-blue-600' : 'text-slate-700'}`}>{day}</div>
+                <div className={`text-xs md:text-sm font-bold mb-0.5 ${isToday ? 'text-blue-600' : 'text-slate-700'}`}>{day}</div>
                 {dayEvents.map(evt => (
-                  <div key={evt.id} className="text-xs bg-purple-100 text-purple-700 rounded px-1 py-0.5 mb-1 truncate">
+                  <div key={evt.id} className="hidden md:block text-xs bg-purple-100 text-purple-700 rounded px-1 py-0.5 mb-1 truncate">
                     {evt.time} {evt.title}
                   </div>
                 ))}
+                {dayEvents.length > 0 && (
+                  <div className="md:hidden w-1.5 h-1.5 rounded-full bg-purple-500 mx-auto mt-0.5" />
+                )}
               </div>
             );
           })}

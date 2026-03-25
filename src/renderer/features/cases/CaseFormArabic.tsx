@@ -114,7 +114,7 @@ export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
         </div>
       )}
       
-      <form onSubmit={handleSubmit} className="glass rounded-2xl p-8 space-y-8 card-hover">
+      <form onSubmit={handleSubmit} className="glass rounded-2xl p-4 md:p-8 space-y-8 card-hover">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
             <FileText className="w-6 h-6 text-white" />
@@ -125,7 +125,7 @@ export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
         {/* Basic Info */}
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-slate-800 border-r-4 border-blue-500 pr-3">{t.basicInfo}</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={t.fileNumber} value={formData.fileNumber} onChange={e => setFormData({...formData, fileNumber: e.target.value})} required />
             <Input label={t.completedBy} value={formData.completedBy} onChange={e => setFormData({...formData, completedBy: e.target.value})} required />
             <Input label={t.sender} value={formData.sender} onChange={e => setFormData({...formData, sender: e.target.value})} />
@@ -152,7 +152,7 @@ export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
         {/* Child Info */}
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-slate-800 border-r-4 border-green-500 pr-3">{t.childInfo}</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={t.firstName} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} required />
             <Input label={t.lastName} value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} required />
             <Input label={t.birthDate} type="date" value={formData.birthDate} onChange={e => setFormData({...formData, birthDate: e.target.value})} required />
@@ -168,7 +168,7 @@ export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
             </label>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Input label={t.siblingsCount} type="number" value={formData.siblingsCount} onChange={e => setFormData({...formData, siblingsCount: parseInt(e.target.value)||0})} />
             <Input label={t.orderAmongSiblings} type="number" value={formData.orderAmongSiblings} onChange={e => setFormData({...formData, orderAmongSiblings: parseInt(e.target.value)||0})} />
             <Input label={t.educationLevel} value={formData.educationLevel} onChange={e => setFormData({...formData, educationLevel: e.target.value})} />
@@ -216,7 +216,7 @@ export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
         {/* Mother Info */}
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-slate-800 border-r-4 border-pink-500 pr-3">{t.motherInfo}</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={t.firstName} value={formData.motherFirstName} onChange={e => setFormData({...formData, motherFirstName: e.target.value})} />
             <Input label={t.lastName} value={formData.motherLastName} onChange={e => setFormData({...formData, motherLastName: e.target.value})} />
             <Input label={t.birthDate} type="date" value={formData.motherBirthDate} onChange={e => setFormData({...formData, motherBirthDate: e.target.value})} />
@@ -232,7 +232,7 @@ export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
         {/* Father Info */}
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-slate-800 border-r-4 border-blue-500 pr-3">{t.fatherInfo}</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={t.firstName} value={formData.fatherFirstName} onChange={e => setFormData({...formData, fatherFirstName: e.target.value})} />
             <Input label={t.lastName} value={formData.fatherLastName} onChange={e => setFormData({...formData, fatherLastName: e.target.value})} />
             <Input label={t.birthDate} type="date" value={formData.fatherBirthDate} onChange={e => setFormData({...formData, fatherBirthDate: e.target.value})} />
@@ -247,7 +247,7 @@ export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
 
         {/* Family Status */}
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={t.parentsStatus} value={formData.parentsStatus} onChange={e => setFormData({...formData, parentsStatus: e.target.value})} />
             <Input label={t.childLivingPlace} value={formData.childLivingPlace} onChange={e => setFormData({...formData, childLivingPlace: e.target.value})} />
           </div>
@@ -256,7 +256,7 @@ export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
         {/* Abuser Info */}
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-slate-800 border-r-4 border-red-500 pr-3">{t.abuserInfo}</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={t.firstName} value={formData.abuserFirstName} onChange={e => setFormData({...formData, abuserFirstName: e.target.value})} />
             <Input label={t.lastName} value={formData.abuserLastName} onChange={e => setFormData({...formData, abuserLastName: e.target.value})} />
             <Input label={t.ageApprox} value={formData.abuserAge} onChange={e => setFormData({...formData, abuserAge: e.target.value})} />
@@ -285,7 +285,7 @@ export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
           
           <div>
             <label className="text-sm font-semibold text-slate-700 mb-2 block">{t.violenceNature}</label>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               {[{v:'physical',l:t.physical},{v:'sexual',l:t.sexual},{v:'psychological',l:t.psychologicalViolence},{v:'social',l:t.social}].map(vt => (
                 <label key={vt.v} className="flex items-center gap-2">
                   <input type="checkbox" checked={formData.violenceTypes.includes(vt.v as ViolenceType)} onChange={() => handleCheckbox('violenceTypes', vt.v)} className="w-5 h-5" />

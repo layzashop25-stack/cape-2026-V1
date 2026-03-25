@@ -73,13 +73,12 @@ export function Dashboard() {
   return (
     <div className="space-y-6 animate-slide-up">
       {/* Controls */}
-      <div className="glass rounded-2xl p-6 flex flex-wrap gap-4 items-center justify-between card-hover">
-        <div className="flex items-center gap-3">
+      <div className="glass rounded-2xl p-4 md:p-6 card-hover">
+        <div className="flex items-center gap-3 mb-3">
           <BarChart3 className="w-6 h-6 text-blue-600" />
           <h3 className="text-lg font-bold text-slate-800">{t.analysisperiod}</h3>
         </div>
-        
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2">
           <Select
             options={[
               { value: 'monthly', label: t.monthly },
@@ -88,7 +87,6 @@ export function Dashboard() {
             value={viewType}
             onChange={e => setViewType(e.target.value as 'monthly' | 'yearly')}
           />
-          
           {viewType === 'monthly' && (
             <Select
               options={Array.from({ length: 12 }, (_, i) => ({
@@ -99,57 +97,52 @@ export function Dashboard() {
               onChange={e => setSelectedMonth(parseInt(e.target.value))}
             />
           )}
-          
           <input
             type="number"
             value={selectedYear}
             onChange={e => setSelectedYear(parseInt(e.target.value))}
-            className="px-4 py-3 border-2 border-slate-200 rounded-xl w-28 font-semibold focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500"
+            className="px-3 py-2 border-2 border-slate-200 rounded-xl w-24 font-semibold focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500"
           />
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass rounded-2xl p-6 card-hover relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-full -mr-16 -mt-16"></div>
+      <div className="grid grid-cols-3 gap-3 md:gap-6">
+        <div className="glass rounded-xl md:rounded-2xl p-3 md:p-6 card-hover relative overflow-hidden">
           <div className="relative">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                <TrendingUp className="w-6 h-6 text-white" />
+            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2 md:mb-3">
+              <div className="p-2 md:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg md:rounded-xl shadow-lg w-fit">
+                <TrendingUp className="w-4 h-4 md:w-6 md:h-6 text-white" />
               </div>
-              <h3 className="text-slate-600 font-semibold">{t.totalCases}</h3>
+              <h3 className="text-slate-600 font-semibold text-xs md:text-base">{t.totalCases}</h3>
             </div>
-            <p className="text-5xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{statsData.total || 0}</p>
-            <p className="text-sm text-slate-500 mt-2">{t.registeredCases}</p>
+            <p className="text-3xl md:text-5xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{statsData.total || 0}</p>
           </div>
         </div>
 
-        <div className="glass rounded-2xl p-6 card-hover relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-cyan-400/20 rounded-full -mr-16 -mt-16"></div>
+        <div className="glass rounded-xl md:rounded-2xl p-3 md:p-6 card-hover relative overflow-hidden">
           <div className="relative">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl shadow-lg">
-                <Users className="w-6 h-6 text-white" />
+            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2 md:mb-3">
+              <div className="p-2 md:p-3 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg md:rounded-xl shadow-lg w-fit">
+                <Users className="w-4 h-4 md:w-6 md:h-6 text-white" />
               </div>
-              <h3 className="text-slate-600 font-semibold">{t.boys}</h3>
+              <h3 className="text-slate-600 font-semibold text-xs md:text-base">{t.boys}</h3>
             </div>
-            <p className="text-5xl font-black bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{statsData.boys || 0}</p>
-            <p className="text-sm text-slate-500 mt-2">👦 {statsData.total > 0 ? ((statsData.boys / statsData.total) * 100).toFixed(1) : 0}% {t.ofTotal}</p>
+            <p className="text-3xl md:text-5xl font-black bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{statsData.boys || 0}</p>
+            <p className="text-xs text-slate-500 mt-1">👦 {statsData.total > 0 ? ((statsData.boys / statsData.total) * 100).toFixed(0) : 0}%</p>
           </div>
         </div>
 
-        <div className="glass rounded-2xl p-6 card-hover relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-400/20 to-rose-400/20 rounded-full -mr-16 -mt-16"></div>
+        <div className="glass rounded-xl md:rounded-2xl p-3 md:p-6 card-hover relative overflow-hidden">
           <div className="relative">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl shadow-lg">
-                <Users className="w-6 h-6 text-white" />
+            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2 md:mb-3">
+              <div className="p-2 md:p-3 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg md:rounded-xl shadow-lg w-fit">
+                <Users className="w-4 h-4 md:w-6 md:h-6 text-white" />
               </div>
-              <h3 className="text-slate-600 font-semibold">{t.girls}</h3>
+              <h3 className="text-slate-600 font-semibold text-xs md:text-base">{t.girls}</h3>
             </div>
-            <p className="text-5xl font-black bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">{statsData.girls || 0}</p>
-            <p className="text-sm text-slate-500 mt-2">👧 {statsData.total > 0 ? ((statsData.girls / statsData.total) * 100).toFixed(1) : 0}% {t.ofTotal}</p>
+            <p className="text-3xl md:text-5xl font-black bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">{statsData.girls || 0}</p>
+            <p className="text-xs text-slate-500 mt-1">👧 {statsData.total > 0 ? ((statsData.girls / statsData.total) * 100).toFixed(0) : 0}%</p>
           </div>
         </div>
       </div>
@@ -269,19 +262,19 @@ export function Dashboard() {
       )}
 
       {/* Export Buttons */}
-      <div className="glass rounded-2xl p-6 card-hover">
+      <div className="glass rounded-2xl p-4 md:p-6 card-hover">
         <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
           <FileDown className="w-5 h-5" />
           {t.exportReports}
         </h3>
-        <div className="flex flex-wrap gap-3">
-          <Button onClick={() => exportService.exportToPDF(statsData, viewType)} size="lg">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Button onClick={() => exportService.exportToPDF(statsData, viewType)} size="lg" className="w-full">
             {t.exportPDF}
           </Button>
-          <Button onClick={() => exportService.exportToExcel(statsData, viewType)} variant="success" size="lg">
+          <Button onClick={() => exportService.exportToExcel(statsData, viewType)} variant="success" size="lg" className="w-full">
             {t.exportExcel}
           </Button>
-          <Button onClick={() => exportService.exportToWord(statsData, viewType)} variant="secondary" size="lg">
+          <Button onClick={() => exportService.exportToWord(statsData, viewType)} variant="secondary" size="lg" className="w-full">
             {t.exportWord}
           </Button>
         </div>

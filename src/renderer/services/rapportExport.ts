@@ -211,7 +211,6 @@ export async function generateCaseRapport(
       new ImageRun({
         data: logo1Data,
         transformation: { width: 650, height: 90 },
-        type: 'png',
       }),
     ],
   });
@@ -223,7 +222,6 @@ export async function generateCaseRapport(
       new ImageRun({
         data: logo2Data,
         transformation: { width: 260, height: 90 },
-        type: 'png',
       }),
     ],
   });

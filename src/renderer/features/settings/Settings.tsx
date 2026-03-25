@@ -61,7 +61,7 @@ export function Settings() {
         </div>
       )}
 
-      <div className="glass rounded-2xl p-8 card-hover">
+      <div className="glass rounded-2xl p-4 md:p-8 card-hover">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
             <Database className="w-6 h-6 text-white" />
