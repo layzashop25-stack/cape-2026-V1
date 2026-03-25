@@ -32,8 +32,8 @@ async function urlToBase64(url: string): Promise<ArrayBuffer> {
 // ─── interfaces ──────────────────────────────────────────────────────────────
 
 export interface RapportOverrides {
-  caseNumber: string;         // رقم الحالة — editable in modal
-  receptionDate: string;      // تاريخ الاستقبال — editable in modal
+  caseNumber: string;
+  receptionDate: string;
   interventionItems: string[];
   resultsItems: string[];
   futureStepsItems: string[];
@@ -49,17 +49,16 @@ const GREEN_BG = 'C8E6C9';
 const BORDER = { style: BorderStyle.SINGLE, size: 6, color: '000000' };
 const ALL_BORDERS = { top: BORDER, bottom: BORDER, left: BORDER, right: BORDER };
 
-// Page content width: A4 (11906 DXA) - 2×720 DXA (0.5" margins) = 10466 DXA
 const PAGE_W = 10466;
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
+// ✅ FIX 1: بدون bidirectional — RIGHT كيشتغل صح مع RTL في Word
 function bulletPara(text: string): Paragraph {
   return new Paragraph({
-    bidirectional: true,
     alignment: AlignmentType.RIGHT,
     spacing: { before: 80, after: 80, line: 360 },
-    indent: { right: convertInchesToTwip(0.3) },
+    indent: { right: convertInchesToTwip(0.2) },
     children: [
       new TextRun({ text: `• ${text}`, font: FONT, size: 26, rightToLeft: true, color: '000000' }),
     ],
@@ -81,7 +80,7 @@ function blackCell(text: string): TableCell {
         alignment: AlignmentType.CENTER,
         spacing: { before: 100, after: 100 },
         children: [
-          new TextRun({ text, font: FONT, size: 26, bold: true, color: "000000", rightToLeft: true }),
+          new TextRun({ text, font: FONT, size: 26, bold: true, color: '000000', rightToLeft: true }),
         ],
       }),
     ],
@@ -200,13 +199,11 @@ export async function generateCaseRapport(
     '—';
   const worker = caseData.completedBy || '—';
 
-  // Load real logo images
   const [logo1Data, logo2Data] = await Promise.all([
     urlToBase64(logo1Url),
     urlToBase64(logo2Url),
   ]);
 
-  // ── Logo 1: wide header banner ────────────────────────────────────────────
   const logo1Para = new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { before: 0, after: 60 },
@@ -219,7 +216,6 @@ export async function generateCaseRapport(
     ],
   });
 
-  // ── Logo 2: CAPE square logo ──────────────────────────────────────────────
   const logo2Para = new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { before: 0, after: 450 },
@@ -232,7 +228,6 @@ export async function generateCaseRapport(
     ],
   });
 
-  // ── Sub-header table (متندوبية | مركز المواكبة) ───────────────────────────
   const halfW = Math.floor(PAGE_W / 2);
   const subHeaderTable = new Table({
     width: { size: PAGE_W, type: WidthType.DXA },
@@ -290,7 +285,6 @@ export async function generateCaseRapport(
     ],
   });
 
-  // ── Report title ──────────────────────────────────────────────────────────
   const reportTitle = new Paragraph({
     bidirectional: true,
     alignment: AlignmentType.CENTER,
@@ -308,7 +302,6 @@ export async function generateCaseRapport(
     ],
   });
 
-  // ── Info table ────────────────────────────────────────────────────────────
   const iCol1 = Math.round(PAGE_W * 0.18);
   const iCol2 = Math.round(PAGE_W * 0.37);
   const iCol3 = PAGE_W - iCol1 - iCol2;
@@ -370,6 +363,7 @@ export async function generateCaseRapport(
               }),
             ],
           }),
+          // ✅ خانة التاريخ → CENTER
           new TableCell({
             width: { size: iCol3, type: WidthType.DXA },
             borders: ALL_BORDERS,
@@ -378,12 +372,12 @@ export async function generateCaseRapport(
             children: [
               new Paragraph({
                 bidirectional: true,
-                alignment: AlignmentType.RIGHT,
+                alignment: AlignmentType.CENTER,
                 children: [new TextRun({ text: `عملية الاستقبال: ${overrides.receptionDate}`, font: FONT, size: 22, rightToLeft: true, color: '000000' })],
               }),
               new Paragraph({
                 bidirectional: true,
-                alignment: AlignmentType.RIGHT,
+                alignment: AlignmentType.CENTER,
                 children: [new TextRun({ text: 'المكان: مركز المواكبة لحماية الطفولة', font: FONT, size: 22, rightToLeft: true, color: '000000' })],
               }),
             ],
@@ -393,7 +387,6 @@ export async function generateCaseRapport(
     ],
   });
 
-  // ── Intervention table — [content LEFT 75% | green label RIGHT 25%] ───────
   const intW1 = PAGE_W - Math.round(PAGE_W * 0.25);
   const intW2 = Math.round(PAGE_W * 0.25);
 
@@ -420,14 +413,12 @@ export async function generateCaseRapport(
     ],
   });
 
-  // ── Page 2 body paragraphs ────────────────────────────────────────────────
   const textToParagraphs = (text: string): Paragraph[] =>
     text
       .split('\n')
       .filter(line => line.trim().length > 0)
       .map(line =>
         new Paragraph({
-          bidirectional: true,
           alignment: AlignmentType.RIGHT,
           spacing: { before: 200, after: 200, line: 440, lineRule: LineRuleType.AUTO },
           indent: { right: convertInchesToTwip(0.3) },
@@ -437,7 +428,6 @@ export async function generateCaseRapport(
         }),
       );
 
-  // ── Assemble document ─────────────────────────────────────────────────────
   const doc = new Document({
     sections: [
       {
@@ -452,7 +442,6 @@ export async function generateCaseRapport(
           },
         },
         children: [
-          // ── PAGE 1 ──────────────────────────────────────────────────────
           logo1Para,
           logo2Para,
           subHeaderTable,
@@ -463,10 +452,8 @@ export async function generateCaseRapport(
           interventionTable,
           emptyPara(160),
 
-          // ── PAGE BREAK ───────────────────────────────────────────────────
           new Paragraph({ children: [new PageBreak()] }),
 
-          // ── PAGE 2 ──────────────────────────────────────────────────────
           emptyPara(200),
 
           sectionHeading('ملخص حول وضعية الحالة '),
@@ -487,7 +474,6 @@ export async function generateCaseRapport(
     ],
   });
 
-  // ── Download ──────────────────────────────────────────────────────────────
   const blob = await Packer.toBlob(doc);
   const downloadUrl = URL.createObjectURL(blob);
   const a = document.createElement('a');
