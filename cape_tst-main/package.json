@@ -1,0 +1,47 @@
+{
+  "name": "cape-app",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "CAPE - Child Protection Case Management Web Application",
+  "author": "Mehdi <https://github.com/mehdi2114>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mehdi2114/cape-app.git"
+  },
+  "keywords": [
+    "child-protection",
+    "case-management",
+    "react",
+    "typescript",
+    "cape"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "setup": "npm install",
+    "start": "npm run dev"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^2.10.0",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.0",
+    "xlsx": "^0.18.5",
+    "docx": "^8.5.0",
+    "date-fns": "^3.0.0",
+    "lucide-react": "^0.300.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
+  }
+}
