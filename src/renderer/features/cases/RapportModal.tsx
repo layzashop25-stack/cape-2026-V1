@@ -88,11 +88,12 @@ export function RapportModal({ caseData, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center z-[100] p-0 md:p-4"
       onClick={onClose}
     >
       <div
-        className="glass rounded-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto shadow-2xl"
+        className="glass w-full md:max-w-3xl md:rounded-2xl rounded-t-2xl overflow-y-auto shadow-2xl flex flex-col"
+        style={{ maxHeight: 'calc(100dvh - 64px)', marginBottom: 0 }}
         onClick={e => e.stopPropagation()}
         dir="rtl"
       >
