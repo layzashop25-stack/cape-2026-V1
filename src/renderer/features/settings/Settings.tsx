@@ -1,12 +1,12 @@
-import { useState } from 'react';
 import { Button } from '@/components/Button';
 import { db } from '@/services/database';
-import { Download, Upload, Database, CheckCircle, AlertCircle } from 'lucide-react';
+import { Download, Upload, Database } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { useToast } from '@/App';
 
 export function Settings() {
   const { t } = useLanguage();
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const { showToast } = useToast();
 
   const handleExport = async () => {
     try {
@@ -20,11 +20,9 @@ export function Settings() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      setMessage({ type: 'success', text: t.exportSuccess || 'Data exported successfully!' });
-      setTimeout(() => setMessage(null), 3000);
-    } catch (error) {
-      setMessage({ type: 'error', text: t.exportError || 'Export failed!' });
-      setTimeout(() => setMessage(null), 3000);
+      showToast(t.toastExportSuccess, 'success');
+    } catch {
+      showToast(t.toastError, 'error');
     }
   };
 
@@ -38,11 +36,10 @@ export function Settings() {
         if (!file) return;
         const text = await file.text();
         await db.importData(text);
-        setMessage({ type: 'success', text: t.importSuccess || 'Data imported successfully! Refresh the page.' });
-        setTimeout(() => window.location.reload(), 2000);
-      } catch (error) {
-        setMessage({ type: 'error', text: t.importError || 'Import failed! Invalid file.' });
-        setTimeout(() => setMessage(null), 3000);
+        showToast(t.toastImportSuccess, 'success');
+        setTimeout(() => window.location.reload(), 1500);
+      } catch {
+        showToast(t.toastError, 'error');
       }
     };
     input.click();
@@ -50,16 +47,6 @@ export function Settings() {
 
   return (
     <div className="space-y-6 animate-slide-up">
-      {message && (
-        <div className={`p-4 rounded-xl shadow-lg flex items-center gap-3 animate-fade-in ${
-          message.type === 'success' 
-            ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white' 
-            : 'bg-gradient-to-r from-red-500 to-rose-600 text-white'
-        }`}>
-          {message.type === 'success' ? <CheckCircle className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
-          <span className="font-semibold">{message.text}</span>
-        </div>
-      )}
 
       <div className="glass rounded-2xl p-4 md:p-8 card-hover">
         <div className="flex items-center gap-3 mb-6">

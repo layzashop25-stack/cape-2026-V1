@@ -1,22 +1,25 @@
 import type { Case, MonthlyStats, YearlyStats, ProblemType } from '@/types';
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import type { translations } from '@/i18n/translations';
 
 export interface DistributionItem { label: string; count: number; percent: number; }
+
+type T = typeof translations.fr;
 
 class StatsService {
   calculateMonthlyStats(cases: Case[], date: Date): MonthlyStats {
     const start = startOfMonth(date);
     const end = endOfMonth(date);
     const filtered = cases.filter(c => {
-      const caseDate = new Date(c.date);
-      return caseDate >= start && caseDate <= end;
+      const d = new Date(c.date);
+      return d >= start && d <= end;
     });
     return {
       month: format(date, 'yyyy-MM'),
       total: filtered.length,
       boys: filtered.filter(c => c.gender === 'male').length,
       girls: filtered.filter(c => c.gender === 'female').length,
-      problemsDistribution: this.getProblemsDistribution(filtered)
+      problemsDistribution: this.getProblemsDistribution(filtered),
     };
   }
 
@@ -24,20 +27,19 @@ class StatsService {
     const start = startOfYear(new Date(year, 0));
     const end = endOfYear(new Date(year, 0));
     const filtered = cases.filter(c => {
-      const caseDate = new Date(c.date);
-      return caseDate >= start && caseDate <= end;
+      const d = new Date(c.date);
+      return d >= start && d <= end;
     });
-    const monthlyData: MonthlyStats[] = [];
-    for (let month = 0; month < 12; month++) {
-      monthlyData.push(this.calculateMonthlyStats(cases, new Date(year, month)));
-    }
+    const monthlyData: MonthlyStats[] = Array.from({ length: 12 }, (_, m) =>
+      this.calculateMonthlyStats(cases, new Date(year, m))
+    );
     return {
       year,
       total: filtered.length,
       boys: filtered.filter(c => c.gender === 'male').length,
       girls: filtered.filter(c => c.gender === 'female').length,
       problemsDistribution: this.getProblemsDistribution(filtered),
-      monthlyData
+      monthlyData,
     };
   }
 
@@ -55,33 +57,41 @@ class StatsService {
     });
   }
 
-  getCategoryDistribution(cases: Case[]): DistributionItem[] {
-    const labels: Record<string, string> = {
-      violence: 'عنف', addiction: 'إدمان', neglect: 'إهمال',
-      exploitation: 'استغلال', family_issues: 'مشاكل عائلية', other: 'أخرى',
+  // Labels come from translations — no hardcoded strings
+  getCategoryDistribution(cases: Case[], t: T): DistributionItem[] {
+    const labelMap: Record<string, keyof T> = {
+      violence: 'statViolence',
+      addiction: 'statAddiction',
+      neglect: 'statNeglect',
+      exploitation: 'statExploitation',
+      family_issues: 'statFamilyIssues',
+      other: 'statOther',
     };
     const total = cases.length || 1;
-    return Object.entries(labels).map(([key, label]) => {
+    return Object.entries(labelMap).map(([key, tKey]) => {
       const count = cases.filter(c => c.problemType === key).length;
-      return { label, count, percent: Math.round((count / total) * 100) };
+      return { label: String(t[tKey]), count, percent: Math.round((count / total) * 100) };
     }).filter(i => i.count > 0);
   }
 
-  getViolenceDistribution(cases: Case[]): DistributionItem[] {
-    const labels: Record<string, string> = {
-      physical: 'جسدي', sexual: 'جنسي', psychological: 'نفسي', social: 'اجتماعي',
+  getViolenceDistribution(cases: Case[], t: T): DistributionItem[] {
+    const labelMap: Record<string, keyof T> = {
+      physical: 'statPhysical',
+      sexual: 'statSexual',
+      psychological: 'statPsychological',
+      social: 'statSocial',
     };
     const total = cases.length || 1;
-    return Object.entries(labels).map(([key, label]) => {
+    return Object.entries(labelMap).map(([key, tKey]) => {
       const count = cases.filter(c => (c.violenceTypes ?? []).includes(key as any)).length;
-      return { label, count, percent: Math.round((count / total) * 100) };
+      return { label: String(t[tKey]), count, percent: Math.round((count / total) * 100) };
     }).filter(i => i.count > 0);
   }
 
-  getEducationDistribution(cases: Case[]): DistributionItem[] {
+  getEducationDistribution(cases: Case[], t: T): DistributionItem[] {
     const dist: Record<string, number> = {};
     cases.forEach(c => {
-      const key = c.educationLevel?.trim() || 'غير محدد';
+      const key = c.educationLevel?.trim() || String(t.statUnknown);
       dist[key] = (dist[key] || 0) + 1;
     });
     const total = cases.length || 1;

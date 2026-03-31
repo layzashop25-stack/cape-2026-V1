@@ -104,6 +104,7 @@ export interface User {
 }
 
 export interface Database {
+  version?: number;
   cases: Case[];
   users: User[];
   settings: {

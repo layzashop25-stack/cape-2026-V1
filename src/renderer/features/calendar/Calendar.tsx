@@ -96,7 +96,7 @@ export function Calendar() {
         </div>
 
         <div className="grid grid-cols-7 gap-1 md:gap-2">
-          {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, i) => (
+          {[t.daySun, t.dayMon, t.dayTue, t.dayWed, t.dayThu, t.dayFri, t.daySat].map((day, i) => (
             <div key={i} className="text-center font-bold text-slate-600 py-1 text-xs md:text-sm">{day}</div>
           ))}
           {blanks.map(i => <div key={`blank-${i}`} />)}

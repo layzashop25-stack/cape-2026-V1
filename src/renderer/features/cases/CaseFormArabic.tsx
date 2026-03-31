@@ -4,11 +4,13 @@ import { Select } from '@/components/Select';
 import { Button } from '@/components/Button';
 import { db } from '@/services/database';
 import type { Gender, ViolenceType, SubstanceType, MedicalHistory, CaseType } from '@/types';
-import { FileText, CheckCircle } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { useToast } from '@/App';
 
 export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
   const { t, language } = useLanguage();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     fileNumber: '',
     completedBy: '',
@@ -71,7 +73,6 @@ export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleCheckbox = (field: 'substances' | 'medicalHistory' | 'violenceTypes', value: any) => {
     const current = formData[field] as any[];
@@ -97,8 +98,7 @@ export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
         date: new Date().toISOString().split('T')[0]
       } as any);
       
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      showToast(t.toastSaved, 'success');
       onSuccess?.();
     } finally {
       setIsSubmitting(false);
@@ -107,13 +107,6 @@ export function CaseFormArabic({ onSuccess }: { onSuccess?: () => void }) {
 
   return (
     <div className="animate-slide-up" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-      {showSuccess && (
-        <div className="mb-6 p-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl shadow-lg flex items-center gap-3 animate-fade-in">
-          <CheckCircle className="w-6 h-6" />
-          <span className="font-semibold">{t.savedSuccessfully} ✅</span>
-        </div>
-      )}
-      
       <form onSubmit={handleSubmit} className="glass rounded-2xl p-4 md:p-8 space-y-8 card-hover">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">

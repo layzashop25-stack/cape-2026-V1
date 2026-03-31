@@ -2,27 +2,19 @@ import { useState } from 'react';
 import { X, Plus, Trash2, Download } from 'lucide-react';
 import type { Case } from '@/types';
 import { generateCaseRapport, buildDefaultOverrides, type RapportOverrides } from '@/services/rapportExport';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface Props {
   caseData: Case;
   onClose: () => void;
 }
 
-// ─── editable bullet list sub-component ─────────────────────────────────────
-
-function BulletList({
-  label,
-  items,
-  onChange,
-}: {
-  label: string;
-  items: string[];
-  onChange: (items: string[]) => void;
+function BulletList({ label, items, onChange, addLabel }: {
+  label: string; items: string[];
+  onChange: (items: string[]) => void; addLabel: string;
 }) {
   const update = (idx: number, val: string) => {
-    const next = [...items];
-    next[idx] = val;
-    onChange(next);
+    const next = [...items]; next[idx] = val; onChange(next);
   };
   const remove = (idx: number) => onChange(items.filter((_, i) => i !== idx));
   const add = () => onChange([...items, '']);
@@ -37,7 +29,7 @@ function BulletList({
           onClick={add}
           className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 px-2 py-1 rounded-lg transition-colors"
         >
-          <Plus className="w-3 h-3" /> إضافة
+          <Plus className="w-3 h-3" /> {addLabel}
         </button>
       </div>
       <div className="space-y-2">
@@ -63,12 +55,9 @@ function BulletList({
   );
 }
 
-// ─── main modal ──────────────────────────────────────────────────────────────
-
 export function RapportModal({ caseData, onClose }: Props) {
-  const [overrides, setOverrides] = useState<RapportOverrides>(() =>
-    buildDefaultOverrides(caseData)
-  );
+  const { t } = useLanguage();
+  const [overrides, setOverrides] = useState<RapportOverrides>(() => buildDefaultOverrides(caseData));
   const [loading, setLoading] = useState(false);
 
   const setField = <K extends keyof RapportOverrides>(key: K, val: RapportOverrides[K]) =>
@@ -104,7 +93,7 @@ export function RapportModal({ caseData, onClose }: Props) {
               <Download className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-800">تقرير الحالة</h3>
+              <h3 className="text-lg font-bold text-slate-800">{t.rapportTitle}</h3>
               <p className="text-xs text-slate-500">{childName} — {caseData.fileNumber || caseData.id.slice(0, 8)}</p>
             </div>
           </div>
@@ -115,61 +104,34 @@ export function RapportModal({ caseData, onClose }: Props) {
 
         <div className="p-6 space-y-6">
 
-          {/* Section 1 — Intervention table fields */}
+          {/* Intervention table */}
           <div className="glass rounded-xl p-5 border border-emerald-100">
             <h4 className="text-base font-bold text-slate-700 mb-4 pb-2 border-b border-slate-100">
-              📋 جدول التدخلات
+              📋 {t.rapportInterventionTable}
             </h4>
-
-            <BulletList
-              label="نوعية التدخل"
-              items={overrides.interventionItems}
-              onChange={v => setField('interventionItems', v)}
-            />
-            <BulletList
-              label="النتائج المحققة"
-              items={overrides.resultsItems}
-              onChange={v => setField('resultsItems', v)}
-            />
-            <BulletList
-              label="الخطوات المستقبلية"
-              items={overrides.futureStepsItems}
-              onChange={v => setField('futureStepsItems', v)}
-            />
-            <BulletList
-              label="المتدخلون في الحالة"
-              items={overrides.stakeholdersItems}
-              onChange={v => setField('stakeholdersItems', v)}
-            />
+            <BulletList label={t.rapportInterventions}  items={overrides.interventionItems}  onChange={v => setField('interventionItems', v)}  addLabel={t.rapportAdd} />
+            <BulletList label={t.rapportResults}        items={overrides.resultsItems}        onChange={v => setField('resultsItems', v)}        addLabel={t.rapportAdd} />
+            <BulletList label={t.rapportFutureSteps}    items={overrides.futureStepsItems}    onChange={v => setField('futureStepsItems', v)}    addLabel={t.rapportAdd} />
+            <BulletList label={t.rapportStakeholders}   items={overrides.stakeholdersItems}   onChange={v => setField('stakeholdersItems', v)}   addLabel={t.rapportAdd} />
           </div>
 
-          {/* Section 2 — Free text sections */}
+          {/* Free text sections */}
           <div className="glass rounded-xl p-5 border border-blue-100">
             <h4 className="text-base font-bold text-slate-700 mb-4 pb-2 border-b border-slate-100">
-              📝 نصوص الصفحة الثانية
+              📝 {t.rapportPage2}
             </h4>
-
             <div className="mb-4">
-              <label className="block text-sm font-bold text-slate-600 mb-2">
-                ملخص حول وضعية الحالة
-              </label>
+              <label className="block text-sm font-bold text-slate-600 mb-2">{t.rapportSummary}</label>
               <textarea
-                dir="rtl"
-                rows={6}
-                value={overrides.summaryText}
+                dir="rtl" rows={6} value={overrides.summaryText}
                 onChange={e => setField('summaryText', e.target.value)}
                 className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all resize-y leading-relaxed"
               />
             </div>
-
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-2">
-                معلومات عن الحالة
-              </label>
+              <label className="block text-sm font-bold text-slate-600 mb-2">{t.rapportCaseInfo}</label>
               <textarea
-                dir="rtl"
-                rows={6}
-                value={overrides.caseInfoText}
+                dir="rtl" rows={6} value={overrides.caseInfoText}
                 onChange={e => setField('caseInfoText', e.target.value)}
                 className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all resize-y leading-relaxed"
               />
@@ -184,18 +146,16 @@ export function RapportModal({ caseData, onClose }: Props) {
             disabled={loading}
             className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
           >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-            ) : (
-              <Download className="w-5 h-5" />
-            )}
-            {loading ? 'جاري التحميل...' : 'تحميل التقرير'}
+            {loading
+              ? <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              : <Download className="w-5 h-5" />}
+            {loading ? t.rapportDownloading : t.rapportDownload}
           </button>
           <button
             onClick={onClose}
             className="px-6 py-3 bg-white/60 text-slate-700 font-semibold rounded-xl border border-slate-200 hover:bg-white/90 transition-all"
           >
-            إلغاء
+            {t.rapportCancel}
           </button>
         </div>
       </div>

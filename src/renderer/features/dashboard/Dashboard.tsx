@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line,
@@ -14,8 +14,9 @@ import { monthNames } from '@/i18n/translations';
 
 const COLORS = ['#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#EF4444', '#6366F1'];
 
-function ChartCard({ title, color, children, onExport }: {
-  title: string; color: string; children: React.ReactNode; onExport: () => void;
+function ChartCard({ title, color, children, onExport, exportLabel }: {
+  title: string; color: string; children: React.ReactNode;
+  onExport: () => void; exportLabel: string;
 }) {
   return (
     <div className="glass rounded-2xl p-4 md:p-6 card-hover">
@@ -29,7 +30,7 @@ function ChartCard({ title, color, children, onExport }: {
           className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all"
         >
           <FileDown className="w-3.5 h-3.5" />
-          تصدير
+          {exportLabel}
         </button>
       </div>
       {children}
@@ -38,16 +39,14 @@ function ChartCard({ title, color, children, onExport }: {
 }
 
 export function Dashboard() {
-  const [viewType, setViewType]       = useState<'monthly' | 'yearly'>('monthly');
+  const [viewType, setViewType]           = useState<'monthly' | 'yearly'>('monthly');
   const [selectedYear, setSelectedYear]   = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [statsData, setStatsData]     = useState<YearlyStats | MonthlyStats | null>(null);
-  const [allCases, setAllCases]       = useState<Case[]>([]);
+  const [statsData, setStatsData]         = useState<YearlyStats | MonthlyStats | null>(null);
+  const [allCases, setAllCases]           = useState<Case[]>([]);
   const { t, language } = useLanguage();
 
-  useEffect(() => { loadStats(); }, [viewType, selectedYear, selectedMonth]);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     const cases = await db.getAllCases();
     setAllCases(cases);
     if (viewType === 'yearly') {
@@ -55,7 +54,9 @@ export function Dashboard() {
     } else {
       setStatsData(stats.calculateMonthlyStats(cases, new Date(selectedYear, selectedMonth)));
     }
-  };
+  }, [viewType, selectedYear, selectedMonth]);
+
+  useEffect(() => { loadStats(); }, [loadStats]);
 
   if (!statsData) {
     return (
@@ -65,14 +66,13 @@ export function Dashboard() {
     );
   }
 
-  // ── existing chart data ──
   const getCaseTypeLabel = (type: string) => ({
-    violence: t.caseTypeViolence || 'Violence',
-    addiction: t.caseTypeAddiction || 'Addiction',
-    neglect: t.caseTypeNeglect || 'Neglect',
-    exploitation: t.caseTypeExploitation || 'Exploitation',
-    family_issues: t.caseTypeFamilyIssues || 'Family Issues',
-    other: t.caseTypeOther || 'Other',
+    violence: t.caseTypeViolence,
+    addiction: t.caseTypeAddiction,
+    neglect: t.caseTypeNeglect,
+    exploitation: t.caseTypeExploitation,
+    family_issues: t.caseTypeFamilyIssues,
+    other: t.caseTypeOther,
   }[type] || type);
 
   const problemsChartData = Object.entries(statsData.problemsDistribution || {})
@@ -85,14 +85,17 @@ export function Dashboard() {
   ].filter(i => i.value > 0);
 
   const monthlyTrend = viewType === 'yearly' && (statsData as YearlyStats).monthlyData
-    ? (statsData as YearlyStats).monthlyData.map((m, idx) => ({ month: monthNames[language][idx], total: m.total }))
+    ? (statsData as YearlyStats).monthlyData.map((m, idx) => ({
+        month: monthNames[language][idx],
+        total: m.total,
+      }))
     : [];
 
-  // ── new distribution data ──
+  // Distribution data — labels come from translations via stats service
   const ageDist  = stats.getAgeDistribution(allCases);
-  const catDist  = stats.getCategoryDistribution(allCases);
-  const violDist = stats.getViolenceDistribution(allCases);
-  const eduDist  = stats.getEducationDistribution(allCases);
+  const catDist  = stats.getCategoryDistribution(allCases, t);
+  const violDist = stats.getViolenceDistribution(allCases, t);
+  const eduDist  = stats.getEducationDistribution(allCases, t);
 
   const toChartData = (dist: typeof ageDist) =>
     dist.map((d, i) => ({ name: d.label, value: d.count, fill: COLORS[i % COLORS.length] }));
@@ -102,6 +105,8 @@ export function Dashboard() {
       {t.noDataAvailable}
     </div>
   );
+
+  const tooltipStyle = { borderRadius: '12px', border: 'none', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' };
 
   return (
     <div className="space-y-6 animate-slide-up">
@@ -154,7 +159,7 @@ export function Dashboard() {
         ))}
       </div>
 
-      {/* Existing Charts: Gender + Problems */}
+      {/* Gender + Problems */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {genderData.length > 0 ? (
           <div className="glass rounded-2xl p-4 md:p-6 card-hover">
@@ -168,7 +173,7 @@ export function Dashboard() {
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
                   {genderData.map((e, i) => <Cell key={i} fill={e.fill} />)}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={tooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -185,7 +190,7 @@ export function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis />
-                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }} />
+                <Tooltip contentStyle={tooltipStyle} />
                 <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                   {problemsChartData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Bar>
@@ -207,27 +212,27 @@ export function Dashboard() {
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />
               <YAxis />
-              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
+              <Tooltip contentStyle={tooltipStyle} />
               <Line type="monotone" dataKey="total" stroke="#3B82F6" strokeWidth={3} dot={{ fill: '#3B82F6', r: 5 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       )}
 
-      {/* ── NEW: 4 Distribution Charts ── */}
+      {/* Distribution section divider */}
       <div className="flex items-center gap-3 pt-2">
         <div className="flex-1 h-px bg-slate-200" />
-        <span className="text-sm font-bold text-slate-500 px-3">📊 تحليلات التوزيع</span>
+        <span className="text-sm font-bold text-slate-500 px-3">📊 {t.distributionAnalysis}</span>
         <div className="flex-1 h-px bg-slate-200" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* Age distribution */}
         <ChartCard
-          title="التوزيع حسب الفئة العمرية"
+          title={t.ageDistribution}
           color="from-blue-500 to-cyan-500"
-          onExport={() => exportSingleDistribution('توزيع الحالات حسب الفئة العمرية', ageDist, allCases.length, 'توزيع_الفئة_العمرية')}
+          exportLabel={t.exportChart}
+          onExport={() => exportSingleDistribution(t.ageDistribution, ageDist, allCases.length, 'age_distribution')}
         >
           {ageDist.some(d => d.count > 0) ? (
             <ResponsiveContainer width="100%" height={240}>
@@ -235,7 +240,7 @@ export function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis />
-                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
+                <Tooltip contentStyle={tooltipStyle} />
                 <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                   {toChartData(ageDist).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Bar>
@@ -244,11 +249,11 @@ export function Dashboard() {
           ) : noData}
         </ChartCard>
 
-        {/* Category distribution */}
         <ChartCard
-          title="التوزيع حسب نوع الحالة"
+          title={t.categoryDistribution}
           color="from-purple-500 to-pink-500"
-          onExport={() => exportSingleDistribution('توزيع الحالات حسب نوع الحالة', catDist, allCases.length, 'توزيع_نوع_الحالة')}
+          exportLabel={t.exportChart}
+          onExport={() => exportSingleDistribution(t.categoryDistribution, catDist, allCases.length, 'category_distribution')}
         >
           {catDist.length > 0 ? (
             <ResponsiveContainer width="100%" height={240}>
@@ -257,17 +262,17 @@ export function Dashboard() {
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
                   {toChartData(catDist).map((e, i) => <Cell key={i} fill={e.fill} />)}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={tooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
           ) : noData}
         </ChartCard>
 
-        {/* Violence type distribution */}
         <ChartCard
-          title="التوزيع حسب نوع العنف"
+          title={t.violenceDistribution}
           color="from-red-500 to-orange-500"
-          onExport={() => exportSingleDistribution('توزيع الحالات حسب نوع العنف', violDist, allCases.length, 'توزيع_نوع_العنف')}
+          exportLabel={t.exportChart}
+          onExport={() => exportSingleDistribution(t.violenceDistribution, violDist, allCases.length, 'violence_distribution')}
         >
           {violDist.length > 0 ? (
             <ResponsiveContainer width="100%" height={240}>
@@ -275,7 +280,7 @@ export function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis />
-                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
+                <Tooltip contentStyle={tooltipStyle} />
                 <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                   {toChartData(violDist).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Bar>
@@ -284,11 +289,11 @@ export function Dashboard() {
           ) : noData}
         </ChartCard>
 
-        {/* Education distribution */}
         <ChartCard
-          title="التوزيع حسب المستوى الدراسي"
+          title={t.educationDistribution}
           color="from-emerald-500 to-teal-500"
-          onExport={() => exportSingleDistribution('توزيع الحالات حسب المستوى الدراسي', eduDist, allCases.length, 'توزيع_المستوى_الدراسي')}
+          exportLabel={t.exportChart}
+          onExport={() => exportSingleDistribution(t.educationDistribution, eduDist, allCases.length, 'education_distribution')}
         >
           {eduDist.length > 0 ? (
             <ResponsiveContainer width="100%" height={240}>
@@ -296,7 +301,7 @@ export function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis type="number" />
                 <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={90} />
-                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
+                <Tooltip contentStyle={tooltipStyle} />
                 <Bar dataKey="value" radius={[0, 8, 8, 0]}>
                   {toChartData(eduDist).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Bar>
@@ -318,7 +323,7 @@ export function Dashboard() {
           className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
         >
           <BookOpen className="w-5 h-5" />
-          📋 التقرير الشامل — كل التوزيعات في ملف واحد
+          📋 {t.masterReport}
         </button>
       </div>
 

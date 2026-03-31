@@ -1,115 +1,170 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Input } from '@/components/Input';
 import { db } from '@/services/database';
 import type { Case } from '@/types';
-import { Search, Users, Calendar, AlertTriangle, Trash2, Edit, FileText } from 'lucide-react';
+import { Search, Users, Calendar, AlertTriangle, Trash2, Edit, FileText, Filter } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { EditCaseModal } from './EditCaseModal';
 import { RapportModal } from './RapportModal';
 
+type SortKey = 'date' | 'name' | 'age';
+
 export function CaseList() {
-  const [cases, setCases] = useState<Case[]>([]);
+  const [allCases, setAllCases]       = useState<Case[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [filterGender, setFilterGender] = useState<'all' | 'male' | 'female'>('all');
+  const [filterType, setFilterType]   = useState<string>('all');
+  const [sortKey, setSortKey]         = useState<SortKey>('date');
+  const [loading, setLoading]         = useState(true);
   const [editingCase, setEditingCase] = useState<Case | null>(null);
   const [rapportCase, setRapportCase] = useState<Case | null>(null);
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
 
-  useEffect(() => {
-    loadCases();
-  }, []);
+  useEffect(() => { loadCases(); }, []);
 
   const loadCases = async () => {
     setLoading(true);
-    const allCases = await db.getAllCases();
-    setCases(allCases);
+    const cases = await db.getAllCases();
+    setAllCases(cases);
     setLoading(false);
   };
 
-  const handleSearch = async (query: string) => {
-    setSearchQuery(query);
-    if (query.trim()) {
-      const results = await db.searchCases(query);
-      setCases(results);
-    } else {
-      loadCases();
-    }
-  };
+  // Multi-field search + filters + sort — all in memory, no extra DB calls
+  const filteredCases = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    let result = allCases.filter(c => {
+      if (q) {
+        const match = [
+          c.name, c.firstName, c.lastName, c.fileNumber, c.phone,
+          c.motherFirstName, c.motherLastName, c.motherPhone,
+          c.fatherFirstName, c.fatherLastName, c.fatherPhone,
+          c.notes, c.birthPlace, c.institution,
+          c.abuserFirstName, c.abuserLastName,
+        ].filter(Boolean).some(f => f!.toLowerCase().includes(q));
+        if (!match) return false;
+      }
+      if (filterGender !== 'all' && c.gender !== filterGender) return false;
+      if (filterType !== 'all' && c.problemType !== filterType) return false;
+      return true;
+    });
+
+    result = [...result].sort((a, b) => {
+      if (sortKey === 'date') return b.date.localeCompare(a.date);
+      if (sortKey === 'name') return a.name.localeCompare(b.name);
+      if (sortKey === 'age')  return b.age - a.age;
+      return 0;
+    });
+
+    return result;
+  }, [allCases, searchQuery, filterGender, filterType, sortKey]);
 
   const handleDelete = async (id: string) => {
-    if (confirm('حذف هذه الحالة؟ / Delete this case?')) {
-      await db.deleteCase(id);
-      loadCases();
-    }
-  };
-
-  const handleEdit = (caseData: Case) => {
-    setEditingCase(caseData);
-  };
-
-  const handleRapport = (caseData: Case) => {
-    setRapportCase(caseData);
+    if (!confirm(t.confirmDelete)) return;
+    await db.deleteCase(id);
+    setAllCases(prev => prev.filter(c => c.id !== id));
   };
 
   const handleUpdate = async (updatedCase: Case) => {
-    // Update name field from firstName + lastName
-    const fullName = `${updatedCase.firstName} ${updatedCase.lastName}`;
+    const fullName = `${updatedCase.firstName} ${updatedCase.lastName}`.trim();
     await db.updateCase(updatedCase.id, { ...updatedCase, name: fullName });
     setEditingCase(null);
     loadCases();
   };
 
-  const getCaseTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      violence: t.caseTypeViolence || 'Violence',
-      addiction: t.caseTypeAddiction || 'Addiction',
-      neglect: t.caseTypeNeglect || 'Neglect',
-      exploitation: t.caseTypeExploitation || 'Exploitation',
-      family_issues: t.caseTypeFamilyIssues || 'Family Issues',
-      other: t.caseTypeOther || 'Other'
-    };
-    return labels[type] || type;
-  };
+  const getCaseTypeLabel = (type: string) => ({
+    violence: t.caseTypeViolence,
+    addiction: t.caseTypeAddiction,
+    neglect: t.caseTypeNeglect,
+    exploitation: t.caseTypeExploitation,
+    family_issues: t.caseTypeFamilyIssues,
+    other: t.caseTypeOther,
+  }[type] || type);
 
-  const getProblemIcon = (type: string) => {
-    const icons: Record<string, string> = {
-      violence: '⚠️',
-      addiction: '🚬',
-      neglect: '🚫',
-      exploitation: '⛔',
-      family_issues: '👨👩👧',
-      other: '📋'
-    };
-    return icons[type] || '📋';
-  };
+  const getProblemIcon = (type: string) => ({
+    violence: '⚠️', addiction: '🚬', neglect: '🚫',
+    exploitation: '⛔', family_issues: '👨‍👩‍👧', other: '📋',
+  }[type] || '📋');
+
+  const caseTypeOptions = [
+    { value: 'all', label: t.filterAll },
+    { value: 'violence', label: t.caseTypeViolence },
+    { value: 'addiction', label: t.caseTypeAddiction },
+    { value: 'neglect', label: t.caseTypeNeglect },
+    { value: 'exploitation', label: t.caseTypeExploitation },
+    { value: 'family_issues', label: t.caseTypeFamilyIssues },
+    { value: 'other', label: t.caseTypeOther },
+  ];
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-slide-up">
-      <div className="glass rounded-2xl p-6 card-hover">
-        <div className="flex items-center gap-3 mb-4">
+    <div className="space-y-6 animate-slide-up" dir={isRTL ? 'rtl' : 'ltr'}>
+
+      {/* Search + Filters */}
+      <div className="glass rounded-2xl p-6 card-hover space-y-4">
+        <div className="flex items-center gap-3 mb-2">
           <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg">
             <Users className="w-6 h-6 text-white" />
           </div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{t.casesList}</h2>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            {t.casesList}
+          </h2>
         </div>
-        
+
         <Input
           icon={<Search className="w-5 h-5" />}
-          placeholder={t.searchPlaceholder}
+          placeholder={t.searchPlaceholderFull}
           value={searchQuery}
-          onChange={e => handleSearch(e.target.value)}
+          onChange={e => setSearchQuery(e.target.value)}
         />
+
+        <div className="flex flex-wrap gap-3 items-center">
+          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
+
+          {/* Gender filter */}
+          <select
+            value={filterGender}
+            onChange={e => setFilterGender(e.target.value as any)}
+            className="px-3 py-2 text-sm bg-white border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          >
+            <option value="all">{t.filterGender}: {t.filterAll}</option>
+            <option value="male">{t.boy}</option>
+            <option value="female">{t.girl}</option>
+          </select>
+
+          {/* Type filter */}
+          <select
+            value={filterType}
+            onChange={e => setFilterType(e.target.value)}
+            className="px-3 py-2 text-sm bg-white border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          >
+            {caseTypeOptions.map(o => (
+              <option key={o.value} value={o.value}>
+                {o.value === 'all' ? `${t.filterType}: ${t.filterAll}` : o.label}
+              </option>
+            ))}
+          </select>
+
+          {/* Sort */}
+          <select
+            value={sortKey}
+            onChange={e => setSortKey(e.target.value as SortKey)}
+            className="px-3 py-2 text-sm bg-white border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          >
+            <option value="date">{t.sortBy}: {t.sortDate}</option>
+            <option value="name">{t.sortBy}: {t.sortName}</option>
+            <option value="age">{t.sortBy}: {t.sortAge}</option>
+          </select>
+        </div>
       </div>
 
-      {cases.length === 0 ? (
+      {filteredCases.length === 0 ? (
         <div className="glass rounded-2xl p-12 text-center">
           <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-slate-400" />
           <p className="text-xl text-slate-600">{t.noCasesFound}</p>
@@ -123,29 +178,29 @@ export function CaseList() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gradient-to-r from-slate-50 to-slate-100 border-b-2 border-slate-200">
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.name}</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.gender}</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.age}</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.problem}</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">{t.date}</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">إجراءات</th>
+                    {[t.name, t.gender, t.age, t.problem, t.date, t.actions].map(h => (
+                      <th key={h} className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {cases.map((c, idx) => (
-                    <tr key={c.id} className="hover:bg-blue-50/50 transition-colors duration-200" style={{ animationDelay: `${idx * 50}ms` }}>
+                  {filteredCases.map((c, idx) => (
+                    <tr key={c.id} className="hover:bg-blue-50/50 transition-colors duration-200" style={{ animationDelay: `${idx * 30}ms` }}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold">
-                            {c.name.charAt(0).toUpperCase()}
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold shrink-0">
+                            {(c.firstName || c.name || '?').charAt(0).toUpperCase()}
                           </div>
-                          <span className="font-semibold text-slate-800">{c.name}</span>
+                          <div>
+                            <span className="font-semibold text-slate-800 block">{c.name}</span>
+                            {c.fileNumber && <span className="text-xs text-slate-400">#{c.fileNumber}</span>}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          c.gender === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'
-                        }`}>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${c.gender === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}`}>
                           {c.gender === 'male' ? t.boy : t.girl}
                         </span>
                       </td>
@@ -163,9 +218,15 @@ export function CaseList() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex gap-2">
-                          <button onClick={() => handleRapport(c)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"><FileText className="w-5 h-5" /></button>
-                          <button onClick={() => handleEdit(c)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit className="w-5 h-5" /></button>
-                          <button onClick={() => handleDelete(c.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-5 h-5" /></button>
+                          <button onClick={() => setRapportCase(c)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title={t.rapportTitle}>
+                            <FileText className="w-5 h-5" />
+                          </button>
+                          <button onClick={() => setEditingCase(c)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title={t.editCase}>
+                            <Edit className="w-5 h-5" />
+                          </button>
+                          <button onClick={() => handleDelete(c.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title={t.confirmDelete}>
+                            <Trash2 className="w-5 h-5" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -177,12 +238,12 @@ export function CaseList() {
 
           {/* Mobile cards */}
           <div className="md:hidden space-y-3">
-            {cases.map((c) => (
+            {filteredCases.map(c => (
               <div key={c.id} className="glass rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg">
-                      {c.name.charAt(0).toUpperCase()}
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg shrink-0">
+                      {(c.firstName || c.name || '?').charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <p className="font-bold text-slate-800">{c.name}</p>
@@ -190,15 +251,13 @@ export function CaseList() {
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <button onClick={() => handleRapport(c)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg"><FileText className="w-5 h-5" /></button>
-                    <button onClick={() => handleEdit(c)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit className="w-5 h-5" /></button>
+                    <button onClick={() => setRapportCase(c)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg"><FileText className="w-5 h-5" /></button>
+                    <button onClick={() => setEditingCase(c)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit className="w-5 h-5" /></button>
                     <button onClick={() => handleDelete(c.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-5 h-5" /></button>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    c.gender === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'
-                  }`}>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${c.gender === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}`}>
                     {c.gender === 'male' ? t.boy : t.girl}
                   </span>
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
@@ -213,24 +272,21 @@ export function CaseList() {
           </div>
         </>
       )}
-      
+
       <div className="glass rounded-xl p-4 flex items-center justify-between">
-        <span className="text-slate-600 font-medium">📊 {t.total}: <span className="text-blue-600 font-bold text-lg">{cases.length}</span> {t.cases}</span>
+        <span className="text-slate-600 font-medium">
+          📊 {t.total}: <span className="text-blue-600 font-bold text-lg">{filteredCases.length}</span> {t.cases}
+          {filteredCases.length !== allCases.length && (
+            <span className="text-slate-400 text-sm ms-2">/ {allCases.length}</span>
+          )}
+        </span>
       </div>
 
       {editingCase && (
-        <EditCaseModal
-          caseData={editingCase}
-          onClose={() => setEditingCase(null)}
-          onSave={handleUpdate}
-        />
+        <EditCaseModal caseData={editingCase} onClose={() => setEditingCase(null)} onSave={handleUpdate} />
       )}
-
       {rapportCase && (
-        <RapportModal
-          caseData={rapportCase}
-          onClose={() => setRapportCase(null)}
-        />
+        <RapportModal caseData={rapportCase} onClose={() => setRapportCase(null)} />
       )}
     </div>
   );
